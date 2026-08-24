@@ -21,7 +21,7 @@ fn test_og_cli_help() {
 #[test]
 fn test_operational_words_are_prompt_text() {
     let output = std::process::Command::new("cargo")
-        .args(["run", "--", "build", "test", "sandlot"])
+        .args(["run", "--", "build", "test", "suite"])
         .output();
 
     assert!(output.is_ok());
@@ -30,9 +30,9 @@ fn test_operational_words_are_prompt_text() {
 }
 
 #[test]
-fn test_natural_language_sandlot_objective_is_accepted() {
+fn test_natural_language_objective_is_accepted() {
     let output = std::process::Command::new("cargo")
-        .args(["run", "--", "test", "this", "on", "sandlot"])
+        .args(["run", "--", "run", "the", "test", "suite", "on", "this", "repository"])
         .output();
 
     assert!(output.is_ok());

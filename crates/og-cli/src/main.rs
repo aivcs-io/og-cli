@@ -118,8 +118,8 @@ mod tests {
 
     #[test]
     fn operational_words_are_prompt_text_not_subcommands() {
-        let cli = Cli::parse_from(["og", "build", "test", "sandlot"]);
-        assert_eq!(cli.prompt, vec!["build", "test", "sandlot"]);
+        let cli = Cli::parse_from(["og", "build", "test", "suite"]);
+        assert_eq!(cli.prompt, vec!["build", "test", "suite"]);
     }
 
     #[test]

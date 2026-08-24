@@ -39,12 +39,12 @@ cargo build --release -p og-cli --features harbormaster-fallback
 
 ## Interaction model
 
-Run `og`, then type an objective. Agent selection, execution placement, Sandlot use, and durable state are decided behind the AivcsOps orchestration seam.
+Run `og`, then type an objective. Agent selection, execution placement, and durable state are decided behind the AivcsOps orchestration seam.
 
 ```text
 $ og
 og> /login
-og> test this repository on Sandlot
+og> run the test suite on this repository
 og> /compact
 og> /exit
 ```

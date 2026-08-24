@@ -50,6 +50,8 @@ jobs:
             'aivcsd\.aivcs\.io' \
             '@lornu\.ai' \
             'lornu-ai' \
+            'sandlot' \
+            'sandlot\.uk' \
             'gho_[A-Za-z0-9]{20,}' \
             'ghp_[A-Za-z0-9]{20,}' \
             'AKIA[0-9A-Z]{16}' \

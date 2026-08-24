@@ -18,7 +18,6 @@ const KNOWN_PUBLIC_ROUTES: &[(&str, &str)] = &[
         "identity-broker/identity-broker",
         "https://identity-broker.aivcs.io",
     ),
-    ("sandlot/sandlot", "https://sandlot.uk"),
 ];
 
 #[derive(Debug, Clone, Deserialize)]
@@ -108,11 +107,6 @@ pub async fn resolve_data_mesh_url() -> Result<String> {
              Set OG_DATA_MESH_URL to override, or work from within the cluster."
         )),
     }
-}
-
-/// Resolve sandlot.uk HTTPS base URL for remote CI/build (code-governance#1176).
-pub async fn resolve_sandlot_endpoint() -> Result<String> {
-    resolve_https_endpoint("sandlot", Some("sandlot/sandlot")).await
 }
 
 /// Resolve a public HTTPS base URL for a catalog capability (e.g. `propel`, `identity`).
@@ -253,28 +247,7 @@ mod tests {
     }
 
     #[test]
-    fn sandlot_known_route_fallback() {
-        let pub_ = Publication {
-            service_id: "sandlot/sandlot".to_string(),
-            capability: "sandlot".to_string(),
-            brand: None,
-            port: None,
-            routes: vec![],
-            exposure_class: Some("Public".to_string()),
-            cluster: None,
-            namespace: None,
-        };
-        assert_eq!(
-            endpoint_from_publication(&pub_).unwrap(),
-            "https://sandlot.uk"
-        );
-    }
-
-    #[test]
     fn is_public_route_rejects_internal_route_ids() {
-        assert!(!is_public_route(
-            "gateway-routes/internal-cluster-identity-broker-identity-broker-identity-broker"
-        ));
         assert!(!is_public_route("gateway-routes"));
         assert!(!is_public_route("identity-broker"));
         assert!(!is_public_route(""));

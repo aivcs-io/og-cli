@@ -336,27 +336,6 @@ pub fn parse_intent(text: &str) -> IntentPlan {
     let mut steps: Vec<PlanStep> = Vec::new();
     let mut clarifications: Vec<String> = Vec::new();
 
-    // Sandlot is an AivcsOps execution substrate, not an og-cli backend or
-    // user-facing automation command.  Any objective that names Sandlot must
-    // cross the sovereign og-leader seam so orchestrator/OxidizedGraph
-    // can select the required agents and runner.  In particular, do not let
-    // "test on sandlot" fall through to the local Test fast path.
-    if norm.contains("sandlot")
-        && ["test", "build", "check", "verify", "run"]
-            .iter()
-            .any(|word| norm.contains(word))
-    {
-        let steps = vec![PlanStep::ForwardToLeader {
-            objective: text.trim().to_string(),
-        }];
-        return IntentPlan {
-            normalized: describe(&steps),
-            steps,
-            clarifications,
-            requires_confirmation: false,
-        };
-    }
-
     // Account management
     if has(&["show account", "which account", "current account"]) {
         steps.push(PlanStep::AccountShow);

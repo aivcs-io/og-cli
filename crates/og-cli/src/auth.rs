@@ -331,7 +331,7 @@ impl AuthManager {
         Ok(())
     }
 
-    /// Bearer access token for sandlot/propel HTTP calls. Errors if not logged in or expired.
+    /// Bearer access token for orchestrator HTTP calls. Errors if not logged in or expired.
     pub fn bearer_token() -> Result<String> {
         let token_path = Self::token_path()?;
         if !token_path.exists() {
