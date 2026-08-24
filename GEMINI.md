@@ -56,6 +56,18 @@ Public builds resolve `envelope-data-mesh` from the **aivcs sparse registry** (`
 
 Optional `harbormaster-fallback` requires registry access to the harbormaster crate.
 
+## Deployment wiring (public and internal)
+
+Fleet-specific endpoints, execution substrates, and service catalogs are **never hardcoded in source**. Wire them at deploy time:
+
+| Mechanism | Examples |
+|-----------|----------|
+| **Env overrides** | `OG_LEADER_GW_URL`, `OG_DATA_MESH_URL`, `OG_IDENTITY_BROKER_URL`, `DISCOVERY_URL` |
+| **Service discovery** | Publications from `discovery.aivcs.io` per capability |
+| **`OG_SERVICES_CATALOG`** | JSON file mounted or referenced in the cluster overlay |
+
+Internal fleet deploys set these in `infra-code-micro` ConfigMaps / ExternalSecrets. The sovereign forge tree may contain additional wiring manifests; the **GitHub export** stays free of internal service names. Substrate selection (remote CI, runners, etc.) is **og-leader's** job after og-cli forwards the objective.
+
 ## Do not
 
 - Publish internal swarm agents to Docker Hub — only the public `og` CLI runner belongs in `hello0aivcs0io`.
