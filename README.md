@@ -24,6 +24,13 @@ cargo build --release -p og-cli
 
 The binary installs as `target/release/og`.
 
+Or run from the public container (Docker Hub: [hello0aivcs0io](https://hub.docker.com/repositories/hello0aivcs0io)):
+
+```bash
+docker run --rm hello0aivcs0io/og-cli:latest --version
+docker run --rm -it hello0aivcs0io/og-cli:latest
+```
+
 Optional local fallback (internal fleets only) requires the `harbormaster-fallback` feature:
 
 ```bash
@@ -55,6 +62,8 @@ og-cli ↔ og-cli-service ↔ og-leader-gw ↔ og-leader ↔ graph
 | Surface | Location |
 |---------|----------|
 | This repo | `https://github.com/aivcs-io/og-cli` |
+| Docker Hub | `docker.io/hello0aivcs0io/og-cli` |
+| GHCR | `ghcr.io/aivcs-io/og-cli` |
 | Sovereign forge (SoT) | `aivcs://aivcs/og-cli` |
 | Homebrew | `brew install aivcs-io/tap/og` (after first release) |
 
