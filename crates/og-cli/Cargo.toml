@@ -1,0 +1,42 @@
+[package]
+name = "og-cli"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+harbormaster-fallback = ["dep:harbormaster"]
+
+[dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+toml = "0.8"
+reqwest = { version = "0.11", features = ["json"] }
+base64 = "0.22"
+thiserror = "1"
+dirs = "5"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+which = "6"
+uuid = { version = "1", features = ["v4", "serde"] }
+rustyline = "14"
+# A2A seam to og-leader via the data-mesh offering. Requires the aivcs registry
+# token — see README.md.
+envelope-data-mesh = { version = "0.1", registry = "aivcs" }
+harbormaster = { version = "0.1", registry = "aivcs", default-features = false, optional = true }
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio = { version = "1", features = ["full", "test-util"] }
+
+[[bin]]
+name = "og"
+path = "src/main.rs"

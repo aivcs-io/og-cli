@@ -1,0 +1,24 @@
+# Cargo
+target/
+**/*.rs.bk
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+
+# Canonical transient/tooling artifacts (vcs-setup#19 canonical .gitignore)
+.aivcs/
+.tmp/
+.local-ci-cache/
+*.log
+.og-crab/
+
+# og-crab / og gating state — machine-written ledgers, never source.
+# A committed gate ledger lets a PR self-certify its merge gate (cg#1273).
+.og/

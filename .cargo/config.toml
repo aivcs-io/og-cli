@@ -1,0 +1,3 @@
+[registries.aivcs]
+index = "sparse+https://registry.aivcs.io/"
+credential-provider = ["cargo:token"]

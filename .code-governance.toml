@@ -1,0 +1,28 @@
+# .code-governance.toml — og-cli adoption manifest
+
+[governance]
+source = "https://github.com/lornu-ai/code-governance"
+ref = "main"
+
+[adoption]
+standards = [
+  "github-repository-baseline",
+  "ci-enforcement-baseline",
+  "rust-project-baseline",
+  "infra-code-iac-ownership",
+]
+
+[deployment]
+tier = "platform"
+description = "OG CLI single-binary command-line entry point for Lornu AI platform"
+# IaC and image builds are owned by the canonical repos (infra-code-iac-ownership).
+iac_repo = "infra-code"
+image_build_repo = "og-builds"
+
+[ci]
+required_checks = [
+  "cargo-test",
+]
+
+[references]
+readme_blurb = "Governed by [lornu-ai/code-governance](https://github.com/lornu-ai/code-governance)."
