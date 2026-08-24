@@ -17,7 +17,7 @@ pub fn propel_request(ctx: &BuildContext) -> Result<PropelBuildRequest> {
 
     Ok(PropelBuildRequest {
         repo_url: std::env::var("GIT_URL")
-            .unwrap_or_else(|_| "https://github.com/lornu-ai/og-cli".to_string()),
+            .unwrap_or_else(|_| "https://github.com/acme/og-cli".to_string()),
         dockerfile: ctx
             .dockerfile
             .clone()
@@ -76,15 +76,28 @@ mod tests {
 
     #[test]
     fn fleet_service_request_uses_aivcs_source() {
+        let dir = std::env::temp_dir().join(format!("og-cli-catalog-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let catalog_path = dir.join("catalog.json");
+        std::fs::write(
+            &catalog_path,
+            r#"{"services":[{"name":"og-leader","description":"test","repo":"aivcs://acme/og-leader","image_name":"og-leader","docker_image":"registry.example/og-leader","k8s_namespace":"agents","flake_ref":".#image","cluster":"example"}]}"#,
+        )
+        .unwrap();
+        std::env::set_var("OG_SERVICES_CATALOG", catalog_path.to_string_lossy().to_string());
+
         let ctx = BuildContext {
             service: Some("og-leader".to_string()),
             no_push: true,
             ..Default::default()
         };
         let req = propel_request(&ctx).unwrap();
-        assert_eq!(req.repo_url, "aivcs://lornu-ai/og-leader");
+        assert_eq!(req.repo_url, "aivcs://acme/og-leader");
         assert_eq!(req.flake_ref.as_deref(), Some(".#image"));
         assert_eq!(req.service_id.as_deref(), Some("og-leader"));
         assert!(!req.push);
+
+        std::env::remove_var("OG_SERVICES_CATALOG");
+        let _ = std::fs::remove_dir_all(dir);
     }
 }

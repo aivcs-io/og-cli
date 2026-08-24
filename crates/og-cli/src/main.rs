@@ -3,7 +3,7 @@
 //! The binary intentionally has no subcommands. Once started, users interact
 //! with the REPL (`/login`, `/compact`, `/help`, …) or pass one natural-language
 //! objective. Agent choice, execution placement, and durable state belong to
-//! og-leader → agent-orchestrate-ai/OxidizedGraph.
+//! og-leader → orchestrator/OxidizedGraph.
 
 use clap::Parser;
 use og_cli::config::ConfigManager;
@@ -13,7 +13,7 @@ use og_cli::config::ConfigManager;
 #[command(
     long_about = "Start the AivcsOps shell with `og`, or pass one natural-language objective. \
                   There are no `og <subcommand>` operational paths; orchestration is owned by \
-                  og-leader → agent-orchestrate-ai/OxidizedGraph."
+                  og-leader → orchestrator/OxidizedGraph."
 )]
 struct Cli {
     /// One natural-language objective. Without this, start the interactive shell.

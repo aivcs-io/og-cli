@@ -383,7 +383,7 @@ mod tests {
     #[tokio::test]
     async fn test_fix_conflicts_fails_closed_no_fabrication() {
         let err = HarbormasterBackend::new()
-            .fix_conflicts("https://github.com/lornu-ai/x/pull/1")
+            .fix_conflicts("https://github.com/acme/x/pull/1")
             .await
             .expect_err("fix-conflicts must fail closed, never fabricate 'resolved'");
         let msg = format!("{err:#}").to_lowercase();
@@ -397,7 +397,7 @@ mod tests {
     #[tokio::test]
     async fn test_merge_fails_closed_no_fabrication() {
         let err = HarbormasterBackend::new()
-            .merge("https://github.com/lornu-ai/x/pull/1", true)
+            .merge("https://github.com/acme/x/pull/1", true)
             .await
             .expect_err("merge must fail closed, never fabricate 'merged'");
         let msg = format!("{err:#}").to_lowercase();
@@ -411,7 +411,7 @@ mod tests {
     #[tokio::test]
     async fn test_review_fails_closed_no_fabrication() {
         let err = HarbormasterBackend::new()
-            .review("https://github.com/lornu-ai/x/pull/1")
+            .review("https://github.com/acme/x/pull/1")
             .await
             .expect_err("review must fail closed, never report a hollow 'completed'");
         let msg = format!("{err:#}").to_lowercase();

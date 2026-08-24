@@ -338,7 +338,7 @@ pub fn parse_intent(text: &str) -> IntentPlan {
 
     // Sandlot is an AivcsOps execution substrate, not an og-cli backend or
     // user-facing automation command.  Any objective that names Sandlot must
-    // cross the sovereign og-leader seam so agent-orchestrate-ai/OxidizedGraph
+    // cross the sovereign og-leader seam so orchestrator/OxidizedGraph
     // can select the required agents and runner.  In particular, do not let
     // "test on sandlot" fall through to the local Test fast path.
     if norm.contains("sandlot")
@@ -807,9 +807,9 @@ mod tests {
         }
         // URL form keeps the owner/repo/pull/N prefix.
         assert_eq!(
-            extract_pr_reference("merge https://github.com/lornu-ai/og-cli/pull/1539/files")
+            extract_pr_reference("merge https://github.com/acme/og-cli/pull/1539/files")
                 .as_deref(),
-            Some("https://github.com/lornu-ai/og-cli/pull/1539")
+            Some("https://github.com/acme/og-cli/pull/1539")
         );
     }
 
@@ -855,7 +855,7 @@ mod tests {
         // og-cli#48: the exact reported phrase. A fleet-scoped "test all open PRs
         // across all repos" must reach og-leader (→ AOA fans out per-PR og-crab
         // runs), NOT collapse to a single local `og test` on the current checkout.
-        let obj = "test all open pull requests in all repositories in the lornu-ai org";
+        let obj = "test all open pull requests in all repositories in the acme org";
         let p = parse_intent(obj);
         assert_eq!(
             p.steps,
@@ -1075,11 +1075,11 @@ mod tests {
 
     #[test]
     fn merge_with_pr_url_is_actionable() {
-        let p = parse_intent("merge https://github.com/lornu-ai/og-cli/pull/13 now");
+        let p = parse_intent("merge https://github.com/acme/og-cli/pull/13 now");
         assert_eq!(
             p.steps,
             vec![PlanStep::Merge {
-                pr: Some("https://github.com/lornu-ai/og-cli/pull/13".to_string())
+                pr: Some("https://github.com/acme/og-cli/pull/13".to_string())
             }]
         );
         assert!(p.is_actionable());
@@ -1088,11 +1088,11 @@ mod tests {
 
     #[test]
     fn pr_url_with_suffix_is_normalized() {
-        let p = parse_intent("merge https://github.com/lornu-ai/og-cli/pull/13/conflicts");
+        let p = parse_intent("merge https://github.com/acme/og-cli/pull/13/conflicts");
         assert_eq!(
             p.steps,
             vec![PlanStep::Merge {
-                pr: Some("https://github.com/lornu-ai/og-cli/pull/13".to_string())
+                pr: Some("https://github.com/acme/og-cli/pull/13".to_string())
             }]
         );
         assert!(p.is_actionable());
@@ -1135,11 +1135,11 @@ mod tests {
         // recognized verb it is forwarded to og-leader (code-governance#769),
         // which selects og-fix-merge-conflicts-agent.
         let p = parse_intent(
-            "fix merge conflucts on https://github.com/lornu-ai/og-cli/pull/23/conflicts",
+            "fix merge conflucts on https://github.com/acme/og-cli/pull/23/conflicts",
         );
         assert!(
             !p.steps.contains(&PlanStep::Merge {
-                pr: Some("https://github.com/lornu-ai/og-cli/pull/23".to_string())
+                pr: Some("https://github.com/acme/og-cli/pull/23".to_string())
             }),
             "must not false-trigger Merge from 'merge conflucts' phrasing: {:?}",
             p.steps
@@ -1185,11 +1185,11 @@ mod tests {
         // Regression (code-governance#639): a `.../pull/<n>/conflicts` URL (the
         // exact shape GitHub's own conflicts page uses) must still resolve to
         // the PR, trimmed back to the bare `.../pull/<n>` form.
-        let p = parse_intent("review https://github.com/lornu-ai/og-cli/pull/23/conflicts");
+        let p = parse_intent("review https://github.com/acme/og-cli/pull/23/conflicts");
         assert_eq!(
             p.steps,
             vec![PlanStep::Review {
-                pr: Some("https://github.com/lornu-ai/og-cli/pull/23".to_string())
+                pr: Some("https://github.com/acme/og-cli/pull/23".to_string())
             }]
         );
         assert!(p.is_actionable());
@@ -1210,12 +1210,12 @@ mod tests {
 
     #[test]
     fn trace_excludes_raw_text() {
-        let p = parse_intent("merge https://github.com/lornu-ai/og-cli/pull/13");
+        let p = parse_intent("merge https://github.com/acme/og-cli/pull/13");
         let json = serde_json::to_string(&p.trace()).unwrap();
         assert!(json.contains("normalized_intent"));
         assert!(json.contains("merge"));
         // the raw sentence must not appear in the exported trace
-        assert!(!json.contains("merge https://github.com/lornu-ai/og-cli/pull/13"));
+        assert!(!json.contains("merge https://github.com/acme/og-cli/pull/13"));
     }
 
     #[test]
@@ -1243,11 +1243,11 @@ mod tests {
         // FixConflicts (→ og-fix-merge-conflicts-agent), not the unmapped
         // clarification and NOT a merge.
         let p =
-            parse_intent("fix merge conflicts on https://github.com/lornu-ai/bookkeeping/pull/39");
+            parse_intent("fix merge conflicts on https://github.com/acme/bookkeeping/pull/39");
         assert_eq!(
             p.steps,
             vec![PlanStep::FixConflicts {
-                pr: Some("https://github.com/lornu-ai/bookkeeping/pull/39".to_string())
+                pr: Some("https://github.com/acme/bookkeeping/pull/39".to_string())
             }]
         );
         assert!(
@@ -1261,7 +1261,7 @@ mod tests {
         );
         assert_eq!(
             p.steps[0].command_line(),
-            "intent: fix-conflicts (https://github.com/lornu-ai/bookkeeping/pull/39)"
+            "intent: fix-conflicts (https://github.com/acme/bookkeeping/pull/39)"
         );
     }
 

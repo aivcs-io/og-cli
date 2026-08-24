@@ -214,7 +214,7 @@ impl WorkflowOrchestrator {
         let output = backend.forward_to_leader(objective).await?;
         println!("  → status: {}", output.status);
         println!(
-            "    og-leader + agent-orchestrate-ai will plan and dispatch the required og-* agents."
+            "    og-leader + orchestrator will plan and dispatch the required og-* agents."
         );
 
         info!("Objective forwarded to og-leader: {}", output.status);
@@ -222,7 +222,7 @@ impl WorkflowOrchestrator {
     }
 
     /// Create a repository through the sovereign flow (code-governance#795):
-    /// og-cli → og-leader → agent-orchestrate-ai → og-agent-forge. Shared by
+    /// og-cli → og-leader → orchestrator → og-agent-forge. Shared by
     /// `og repo create` and the NL shell / `og do` path so both behave
     /// identically.
     ///

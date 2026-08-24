@@ -264,7 +264,7 @@ fn help() {
     println!("Just describe what you want, e.g.:");
     println!("  build and test this repo");
     println!("  review #42");
-    println!("  run the gate then merge https://github.com/lornu-ai/og-cli/pull/16");
+    println!("  run the gate then merge https://github.com/acme/og-cli/pull/16");
     println!("  what's the status?");
     println!("  show my account");
     println!("  switch to account alice");
@@ -648,12 +648,12 @@ mod tests {
     fn parse_pr_answer_accepts_url_number_and_bare_integer() {
         assert_eq!(parse_pr_answer("#42"), Some("#42".to_string()));
         assert_eq!(
-            parse_pr_answer("https://github.com/lornu-ai/og-cli/pull/13"),
-            Some("https://github.com/lornu-ai/og-cli/pull/13".to_string())
+            parse_pr_answer("https://github.com/acme/og-cli/pull/13"),
+            Some("https://github.com/acme/og-cli/pull/13".to_string())
         );
         assert_eq!(
-            parse_pr_answer("https://github.com/lornu-ai/og-cli/pull/13/conflicts"),
-            Some("https://github.com/lornu-ai/og-cli/pull/13".to_string())
+            parse_pr_answer("https://github.com/acme/og-cli/pull/13/conflicts"),
+            Some("https://github.com/acme/og-cli/pull/13".to_string())
         );
         assert_eq!(parse_pr_answer("1"), Some("#1".to_string()));
         assert_eq!(parse_pr_answer("merge"), None);

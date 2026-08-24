@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
 
-/// Agent dispatch: **AOA primary**, [harbormaster](https://github.com/lornu-ai/harbormaster)
-/// **fallback only** when AOA/Kubernetes backends are unavailable.
+/// Agent dispatch via the orchestrator (AOA) primary endpoint, with optional
+/// local fallback when configured through environment variables.
 #[derive(Debug, Clone)]
 pub struct AgentRegistry {
     primary_url: String,
@@ -20,9 +20,8 @@ impl Default for AgentRegistry {
 impl AgentRegistry {
     pub fn new() -> Self {
         Self {
-            primary_url: std::env::var("AOA_URL")
-                .unwrap_or_else(|_| "http://aoa-mcp.agent-orchestrate-ai:8090".to_string()),
-            fallback_url: "https://github.com/lornu-ai/harbormaster".to_string(),
+            primary_url: std::env::var("AOA_URL").unwrap_or_default(),
+            fallback_url: std::env::var("HARBORMASTER_CATALOG_URL").unwrap_or_default(),
         }
     }
 
@@ -35,20 +34,36 @@ impl AgentRegistry {
     }
 
     pub fn fallback_catalog_path(&self) -> String {
-        format!("{}/blob/main/catalog.toml", self.fallback_url)
+        if self.fallback_url.is_empty() {
+            return "(not configured)".to_string();
+        }
+        format!("{}/blob/main/catalog.toml", self.fallback_url.trim_end_matches('/'))
     }
 
-    /// Resolve agent via AOA first; harbormaster catalog is consulted only on fallback.
     pub fn resolve_agent(&self, name: &str, use_fallback: bool) -> Option<String> {
         if use_fallback {
+            if self.fallback_url.is_empty() {
+                return None;
+            }
             info!(
-                "Resolving agent: {} from harbormaster fallback catalog",
+                "Resolving agent: {} from fallback catalog",
                 name
             );
-            Some(format!("{}/tree/main/agents/{}", self.fallback_url, name))
+            Some(format!(
+                "{}/tree/main/agents/{}",
+                self.fallback_url.trim_end_matches('/'),
+                name
+            ))
         } else {
+            if self.primary_url.is_empty() {
+                return None;
+            }
             info!("Resolving agent: {} from AOA primary", name);
-            Some(format!("{}/v1/agents/{}", self.primary_url, name))
+            Some(format!(
+                "{}/v1/agents/{}",
+                self.primary_url.trim_end_matches('/'),
+                name
+            ))
         }
     }
 }
@@ -59,7 +74,6 @@ pub struct AgentInfo {
     pub description: String,
     pub enabled: bool,
     pub timeout_secs: Option<u64>,
-    pub image: String,
 }
 
 pub struct AgentManager;
@@ -71,35 +85,30 @@ fn core_agents() -> Vec<AgentInfo> {
             description: "Architecture and acceptance criteria design".to_string(),
             enabled: true,
             timeout_secs: Some(300),
-            image: "lornu-ai/og-design-agent:latest".to_string(),
         },
         AgentInfo {
             name: "og-propel".to_string(),
             description: "Build orchestration and OCI image generation".to_string(),
             enabled: true,
             timeout_secs: Some(600),
-            image: "lornu-ai/og-propel:latest".to_string(),
         },
         AgentInfo {
             name: "og-crab".to_string(),
             description: "Test execution and coverage reporting".to_string(),
             enabled: true,
             timeout_secs: Some(900),
-            image: "lornu-ai/og-crab:latest".to_string(),
         },
         AgentInfo {
             name: "og-code-review-agent".to_string(),
             description: "Code review and quality analysis".to_string(),
             enabled: true,
             timeout_secs: Some(400),
-            image: "lornu-ai/og-code-review-agent:latest".to_string(),
         },
         AgentInfo {
             name: "og-pr-merge-agent".to_string(),
             description: "PR merge gating and sovereign merge".to_string(),
             enabled: true,
             timeout_secs: Some(200),
-            image: "lornu-ai/og-pr-merge-agent:latest".to_string(),
         },
     ]
 }
@@ -114,28 +123,32 @@ impl AgentManager {
         println!("📦 Available Agents ({} total):", agents.len());
         println!();
         println!("Dispatch chain (og-cli agents):");
-        println!("  Primary:  AOA — {}", registry.primary_url());
-        println!(
-            "  Fallback: harbormaster — {} (only if AOA/K8s unavailable)",
-            registry.fallback_catalog_path()
-        );
+        if registry.primary_url().is_empty() {
+            println!("  Primary:  AOA — (set AOA_URL)");
+        } else {
+            println!("  Primary:  AOA — {}", registry.primary_url());
+        }
+        if registry.fallback_url().is_empty() {
+            println!("  Fallback: (set HARBORMASTER_CATALOG_URL to enable)");
+        } else {
+            println!(
+                "  Fallback: {} (only if AOA/K8s unavailable)",
+                registry.fallback_catalog_path()
+            );
+        }
         println!();
 
         for agent in &agents {
             let status = if agent.enabled { "✅" } else { "❌" };
             println!("{} {}", status, agent.name);
             println!("   Description: {}", agent.description);
-            println!("   Image: {}", agent.image);
             if let Some(timeout) = agent.timeout_secs {
                 println!("   Timeout: {}s", timeout);
             }
             println!();
         }
 
-        info!(
-            "Listed {} agents (AOA primary, harbormaster fallback)",
-            agents.len()
-        );
+        info!("Listed {} agents", agents.len());
         Ok(())
     }
 
@@ -151,18 +164,12 @@ impl AgentManager {
         if aoa_available {
             println!("Dispatching via AOA (primary)...");
             println!("  Endpoint: {}", registry.primary_url());
-        } else {
-            println!("AOA unavailable — dispatching via harbormaster (fallback)...");
+        } else if !registry.fallback_url().is_empty() {
+            println!("AOA unavailable — dispatching via fallback catalog...");
             println!("  Catalog: {}", registry.fallback_catalog_path());
+        } else {
+            anyhow::bail!("Neither AOA_URL nor HARBORMASTER_CATALOG_URL is configured");
         }
-        println!(
-            "→ Backend: {}",
-            if aoa_available {
-                "agent-orchestrated"
-            } else {
-                "harbormaster"
-            }
-        );
         println!("→ Agent: {}", name);
         println!();
 
@@ -199,19 +206,10 @@ impl AgentManager {
         println!("✓ Status: queued");
         println!("✓ Lease ID: {}", lease_id);
 
-        info!(
-            "Agent run submitted: {} via {}",
-            name,
-            if aoa_available {
-                "AOA"
-            } else {
-                "harbormaster-fallback"
-            }
-        );
+        info!("Agent run submitted: {}", name);
         Ok(())
     }
 
-    /// Phase 0 stub: treat AOA as reachable unless explicitly disabled.
     fn aoa_reachable(registry: &AgentRegistry) -> bool {
         std::env::var("OG_CLI_FORCE_HARBORMASTER_FALLBACK").is_err()
             && !registry.primary_url().is_empty()
@@ -228,26 +226,13 @@ impl AgentManager {
     pub fn logs(name: String) -> Result<()> {
         info!("Streaming logs for agent: {}", name);
 
-        let registry = AgentRegistry::new();
         let lease_id = Self::generate_lease_id();
-        let via = if Self::aoa_reachable(&registry) {
-            "AOA"
-        } else {
-            "harbormaster (fallback)"
-        };
 
         println!("📋 Agent Logs: {}", name);
         println!();
-        println!("Streaming from {}...", via);
         println!("Lease ID: {}", lease_id);
         println!();
-        println!("[2026-08-01T12:45:00Z] INFO  [og-propel] Starting build orchestration");
-        println!("[2026-08-01T12:45:02Z] INFO  [og-propel] Resolving workspace dependencies");
-        println!("[2026-08-01T12:45:05Z] DEBUG [og-propel] Building crate: og-cli");
-        println!("[2026-08-01T12:45:08Z] INFO  [og-propel] Build complete (3.2s)");
-        println!("[2026-08-01T12:45:10Z] INFO  [og-propel] Pushing image to registry");
-        println!("[2026-08-01T12:45:15Z] DEBUG [og-propel] Image digest: sha256:abc123...");
-        println!("[2026-08-01T12:45:16Z] INFO  [og-propel] Agent work complete");
+        println!("[INFO] Agent work complete (stub stream)");
         println!();
         println!("✓ Stream ended");
 
@@ -266,35 +251,23 @@ impl AgentManager {
                 println!("[og-propel]");
                 println!("enabled = true");
                 println!("timeout = 600");
-                println!("image = \"lornu-ai/og-propel:latest\"");
                 println!();
                 println!("[og-propel.config]");
                 println!("registry = \"registry.aivcs.io\"");
                 println!("build_platform = \"linux/amd64,linux/arm64\"");
-                println!("cache = true");
-                println!("parallelism = 4");
             }
             "og-crab" => {
                 println!("[og-crab]");
                 println!("enabled = true");
                 println!("timeout = 900");
-                println!("image = \"lornu-ai/og-crab:latest\"");
                 println!();
                 println!("[og-crab.config]");
                 println!("coverage_threshold = 85.0");
-                println!("integration_tests = true");
-                println!("report_format = \"coverage.xml\"");
             }
             "og-code-review-agent" => {
                 println!("[og-code-review-agent]");
                 println!("enabled = true");
                 println!("timeout = 400");
-                println!("image = \"lornu-ai/og-code-review-agent:latest\"");
-                println!();
-                println!("[og-code-review-agent.config]");
-                println!("security_scan = true");
-                println!("lint_checks = true");
-                println!("architecture_review = false");
             }
             _ => {
                 println!("❌ Unknown agent: {}", name);
@@ -304,11 +277,15 @@ impl AgentManager {
 
         let registry = AgentRegistry::new();
         println!();
-        println!("✓ Primary registry: AOA ({})", registry.primary_url());
-        println!(
-            "✓ Fallback catalog: harbormaster ({})",
-            registry.fallback_catalog_path()
-        );
+        if !registry.primary_url().is_empty() {
+            println!("✓ Primary registry: AOA ({})", registry.primary_url());
+        }
+        if !registry.fallback_url().is_empty() {
+            println!(
+                "✓ Fallback catalog: {}",
+                registry.fallback_catalog_path()
+            );
+        }
 
         info!("Showed config for agent: {}", name);
         Ok(())

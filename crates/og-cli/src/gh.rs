@@ -360,15 +360,15 @@ mod tests {
         // is checked out locally (#67), and a number-only assertion would pass
         // even if the repo were parsed wrong.
         assert_eq!(
-            extract_repo_and_number_from_url("https://github.com/lornu-ai/og-cli/pull/42").unwrap(),
-            ("lornu-ai/og-cli".to_string(), 42)
+            extract_repo_and_number_from_url("https://github.com/acme/og-cli/pull/42").unwrap(),
+            ("acme/og-cli".to_string(), 42)
         );
     }
 
     #[test]
     fn repo_from_url_and_repo_is_iac() {
         assert_eq!(
-            repo_from_url("https://github.com/lornu-ai/infra-code/pull/5").as_deref(),
+            repo_from_url("https://github.com/acme/infra-code/pull/5").as_deref(),
             Some("infra-code")
         );
         assert!(repo_is_iac("infra-code"));

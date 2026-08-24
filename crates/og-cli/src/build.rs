@@ -22,7 +22,7 @@ pub struct BuildConfig {
 impl BuildConfig {
     pub fn default_registry() -> String {
         std::env::var("OG_BUILD_REGISTRY")
-            .unwrap_or_else(|_| "registry.aivcs.io/lornu-ai".to_string())
+            .unwrap_or_else(|_| "registry.aivcs.io/aivcs".to_string())
     }
 
     pub fn dockerfile_path(&self) -> &str {
@@ -175,10 +175,10 @@ mod tests {
     #[test]
     fn test_build_config_registry() {
         let cfg = BuildConfig {
-            registry: Some("gcr.io/my-org".to_string()),
+            registry: Some("registry.example/my-org".to_string()),
             ..Default::default()
         };
-        assert_eq!(cfg.registry(), "gcr.io/my-org");
+        assert_eq!(cfg.registry(), "registry.example/my-org");
     }
 
     #[test]
@@ -209,15 +209,15 @@ mod tests {
         let req = PropelBuildRequest {
             repo_url: "https://github.com/org/repo".to_string(),
             dockerfile: "Dockerfile".to_string(),
-            image_name: "gcr.io/org/service:v1.0".to_string(),
+            image_name: "registry.example/org/service:v1.0".to_string(),
             platforms: vec!["linux/amd64".to_string()],
-            registry: "gcr.io".to_string(),
+            registry: "registry.example".to_string(),
             push: true,
             service_id: None,
             flake_ref: None,
         };
 
-        assert_eq!(req.image_name, "gcr.io/org/service:v1.0");
+        assert_eq!(req.image_name, "registry.example/org/service:v1.0");
         assert_eq!(req.platforms.len(), 1);
     }
 
@@ -227,9 +227,9 @@ mod tests {
         let req = PropelBuildRequest {
             repo_url: "https://github.com/org/repo".to_string(),
             dockerfile: "Dockerfile".to_string(),
-            image_name: "gcr.io/org/service:v1.0".to_string(),
+            image_name: "registry.example/org/service:v1.0".to_string(),
             platforms: vec!["linux/amd64".to_string()],
-            registry: "gcr.io".to_string(),
+            registry: "registry.example".to_string(),
             push: true,
             service_id: None,
             flake_ref: None,

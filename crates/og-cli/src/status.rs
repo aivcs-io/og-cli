@@ -71,7 +71,7 @@ impl StatusManager {
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!("Config file: og-cli.toml");
         println!("VCS backend: auto");
-        println!("Git remote: https://github.com/lornu-ai/og-cli");
+        println!("Git remote: https://github.com/acme/og-cli");
         println!("AIVCS endpoint: aivcs.io");
         println!();
 

@@ -1,7 +1,0 @@
-# .og-ciso-allowlist — sovereign CISO scan exemptions for og-cli
-CLAUDE.md
-README.md
-crates/og-cli/src/auth.rs
-crates/og-cli/src/backend/aoa.rs
-crates/og-cli/src/main.rs
-crates/og-cli/src/workflow.rs

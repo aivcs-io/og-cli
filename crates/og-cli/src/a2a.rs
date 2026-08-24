@@ -149,9 +149,9 @@ mod tests {
     async fn test_build_request_serialization() {
         let req = BuildRequest {
             service: "og-leader".to_string(),
-            repo: "aivcs://lornu-ai/og-leader".to_string(),
+            repo: "aivcs://acme/og-leader".to_string(),
             flake_ref: ".#image".to_string(),
-            registry: "gcr.io".to_string(),
+            registry: "registry.example".to_string(),
             push: true,
         };
         let json = serde_json::to_value(&req).unwrap();
@@ -167,12 +167,12 @@ mod tests {
         }
         let req = BuildRequest {
             service: "og-leader".to_string(),
-            repo: "aivcs://lornu-ai/og-leader".to_string(),
+            repo: "aivcs://acme/og-leader".to_string(),
             flake_ref: ".#image".to_string(),
-            registry: "gcr.io".to_string(),
+            registry: "registry.example".to_string(),
             push: true,
         };
-        let resp = A2AClient::build_service(&req, "lornu-ai").await;
+        let resp = A2AClient::build_service(&req, "acme").await;
         assert!(resp.is_err(), "must fail closed, not fabricate a stub");
     }
 }

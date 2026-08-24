@@ -1,0 +1,66 @@
+name: Release
+
+# Publishes GitHub Release binaries only after the release gate passes.
+# Tag format: vMAJOR.MINOR.PATCH
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    uses: ./.github/workflows/release-gate.yml
+
+  release-binaries:
+    name: Build and publish release binaries
+    needs: gate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: og-linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: og-linux-arm64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            artifact: og-darwin-arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Configure aivcs registry token
+        env:
+          AIVCS_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRIES_AIVCS_TOKEN }}
+        run: |
+          test -n "${AIVCS_REGISTRY_TOKEN}"
+          mkdir -p ~/.cargo
+          printf '[registries.aivcs]\ntoken = "%s"\n' "$AIVCS_REGISTRY_TOKEN" >> ~/.cargo/credentials.toml
+
+      - name: Build release binary
+        env:
+          CARGO_REGISTRIES_AIVCS_TOKEN: ${{ secrets.CARGO_REGISTRIES_AIVCS_TOKEN }}
+        run: cargo build --release -p og-cli --target ${{ matrix.target }}
+
+      - name: Stage artifact
+        run: |
+          install -Dm755 target/${{ matrix.target }}/release/og "${{ matrix.artifact }}"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}
+          generate_release_notes: true

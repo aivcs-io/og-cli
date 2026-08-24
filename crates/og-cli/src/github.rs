@@ -173,16 +173,16 @@ mod tests {
 
     #[test]
     fn test_github_url_parsing() {
-        let repo = GitHubRepo::from_url("https://github.com/lornu-ai/og-cli").unwrap();
-        assert_eq!(repo.owner, "lornu-ai");
+        let repo = GitHubRepo::from_url("https://github.com/acme/og-cli").unwrap();
+        assert_eq!(repo.owner, "acme");
         assert_eq!(repo.repo, "og-cli");
-        assert_eq!(repo.url(), "https://github.com/lornu-ai/og-cli");
+        assert_eq!(repo.url(), "https://github.com/acme/og-cli");
     }
 
     #[test]
     fn test_github_url_parsing_with_git() {
-        let repo = GitHubRepo::from_url("https://github.com/lornu-ai/og-cli.git").unwrap();
-        assert_eq!(repo.owner, "lornu-ai");
+        let repo = GitHubRepo::from_url("https://github.com/acme/og-cli.git").unwrap();
+        assert_eq!(repo.owner, "acme");
         assert_eq!(repo.repo, "og-cli");
     }
 
@@ -194,14 +194,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_github_client_new() {
-        let repo = GitHubRepo::from_url("https://github.com/lornu-ai/og-cli").unwrap();
+        let repo = GitHubRepo::from_url("https://github.com/acme/og-cli").unwrap();
         let client = GitHubClient::new(repo);
         assert!(client.is_reachable().await);
     }
 
     #[tokio::test]
     async fn test_github_list_prs() {
-        let repo = GitHubRepo::from_url("https://github.com/lornu-ai/og-cli").unwrap();
+        let repo = GitHubRepo::from_url("https://github.com/acme/og-cli").unwrap();
         let client = GitHubClient::new(repo);
         let prs = client.list_prs().await.unwrap();
         assert!(!prs.is_empty());

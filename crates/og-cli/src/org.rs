@@ -15,8 +15,8 @@ pub struct OrgContext {
 impl Default for OrgContext {
     fn default() -> Self {
         Self {
-            active_org: "lornu-ai".to_string(),
-            available_orgs: vec!["lornu-ai".to_string()],
+            active_org: "aivcs".to_string(),
+            available_orgs: vec!["aivcs".to_string()],
         }
     }
 }
@@ -53,7 +53,7 @@ impl OrgManager {
     /// | `og org use acme-corp` | **no — rejected** |
     ///
     /// Nothing ever populated the cache (`fetch_available_orgs` had no
-    /// callers), so it was permanently `["lornu-ai"]` and every other org was
+    /// callers), so it was permanently `["acme"]` and every other org was
     /// refused — while the same org worked fine via a URL or the env var. The
     /// membership check belongs to the backend that can actually authorize it
     /// (aivcs.io / og-leader), not to an unpopulated local list.
@@ -152,12 +152,12 @@ impl OrgManager {
     /// Resolve the org for a command, given an optional URL reference.
     ///
     /// Precedence: URL-detected org → `OG_ORG` env → active context → default
-    /// (`lornu-ai`). This is the single runtime resolver for A2A tenant routing.
+    /// (`aivcs`). This is the single runtime resolver for A2A tenant routing.
     pub fn resolve_org(url: Option<&str>) -> String {
         if let Some(org) = url.and_then(Self::org_from_url) {
             return org;
         }
-        Self::get_active().unwrap_or_else(|_| "lornu-ai".to_string())
+        Self::get_active().unwrap_or_else(|_| "aivcs".to_string())
     }
 
     /// Orgs known locally, plus any the active account implies.
@@ -178,7 +178,7 @@ impl OrgManager {
             // a failed/partial lookup would silently hide an org the user has.
         }
         if orgs.is_empty() {
-            orgs.push("lornu-ai".to_string());
+            orgs.push("aivcs".to_string());
         }
         orgs.sort();
         orgs.dedup();
@@ -232,8 +232,8 @@ mod tests {
     #[test]
     fn test_org_context_default() {
         let context = OrgContext::default();
-        assert_eq!(context.active_org, "lornu-ai");
-        assert!(context.available_orgs.contains(&"lornu-ai".to_string()));
+        assert_eq!(context.active_org, "acme");
+        assert!(context.available_orgs.contains(&"acme".to_string()));
     }
 
     #[test]
@@ -244,8 +244,8 @@ mod tests {
             Some("acme-corp")
         );
         assert_eq!(
-            OrgManager::org_from_url("https://github.com/lornu-ai/infra-code/pull/5").as_deref(),
-            Some("lornu-ai")
+            OrgManager::org_from_url("https://github.com/acme/infra-code/pull/5").as_deref(),
+            Some("acme")
         );
     }
 
@@ -282,7 +282,7 @@ mod tests {
     /// could select `acme-corp` while `og org use acme-corp` was rejected.
     #[test]
     fn an_org_name_valid_by_url_is_also_valid_by_name() {
-        for org in ["acme-corp", "team-x", "lornu-ai"] {
+        for org in ["acme-corp", "team-x", "acme"] {
             let from_url =
                 OrgManager::org_from_url(&format!("https://github.com/{org}/repo/pull/1"));
             assert_eq!(from_url.as_deref(), Some(org));
@@ -294,11 +294,11 @@ mod tests {
     /// The behaviour that regressed: switching to an org the local cache has
     /// never seen must succeed and record it. Previously `use_org` rejected
     /// anything not already in `available_orgs`, and nothing ever populated
-    /// that list, so only `lornu-ai` was reachable.
+    /// that list, so only `acme` was reachable.
     #[test]
     fn switching_to_an_unknown_org_succeeds_and_records_it() {
         let mut ctx = OrgContext::default();
-        assert_eq!(ctx.available_orgs, vec!["lornu-ai".to_string()]);
+        assert_eq!(ctx.available_orgs, vec!["acme".to_string()]);
 
         let got = OrgManager::apply_use_org(&mut ctx, "acme-corp").expect("switch must succeed");
 
@@ -347,7 +347,7 @@ mod tests {
         // A non-URL reference falls through to the env/context resolver — assert
         // it agrees with that path rather than a literal, so a machine-local
         // OG_ORG / org_context.json can't flake the test.
-        let fallback = OrgManager::get_active().unwrap_or_else(|_| "lornu-ai".to_string());
+        let fallback = OrgManager::get_active().unwrap_or_else(|_| "acme".to_string());
         assert_eq!(OrgManager::resolve_org(Some("#7")), fallback);
         assert_eq!(OrgManager::resolve_org(None), fallback);
     }

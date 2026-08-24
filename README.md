@@ -67,7 +67,7 @@ og-cli ↔ og-cli-service ↔ og-leader-gw ↔ og-leader ↔ graph
 | Sovereign forge (SoT) | `aivcs://aivcs/og-cli` |
 | Homebrew | `brew install aivcs-io/tap/og` (after first release) |
 
-See [GEMINI.md](./GEMINI.md) for release/sync policy.
+See [GEMINI.md](./GEMINI.md) for release/sync policy and the scan-first release gate.
 
 ## License
 

@@ -130,7 +130,7 @@ impl AivcsClient {
     }
 
     pub fn api_endpoint(&self) -> String {
-        format!("https://aivcsd.aivcs.io/repos/{}/{}", self.owner, self.repo)
+        format!("https://aivcs.io/api/v1/repos/{}/{}", self.owner, self.repo)
     }
 
     pub async fn is_reachable(&self) -> bool {
@@ -373,40 +373,40 @@ mod tests {
 
     #[test]
     fn test_git_client_from_url() {
-        let client = GitClient::from_url("https://github.com/lornu-ai/og-cli").unwrap();
-        assert_eq!(client.owner, "lornu-ai");
+        let client = GitClient::from_url("https://github.com/acme/og-cli").unwrap();
+        assert_eq!(client.owner, "acme");
         assert_eq!(client.repo, "og-cli");
     }
 
     #[test]
     fn test_git_client_api_endpoint() {
-        let client = GitClient::new("lornu-ai".to_string(), "og-cli".to_string());
+        let client = GitClient::new("acme".to_string(), "og-cli".to_string());
         assert!(client.api_endpoint().contains("api.github.com"));
     }
 
     #[test]
     fn test_aivcs_client_from_url() {
-        let client = AivcsClient::from_url("https://aivcs.io/lornu-ai/og-cli").unwrap();
-        assert_eq!(client.owner, "lornu-ai");
+        let client = AivcsClient::from_url("https://aivcs.io/acme/og-cli").unwrap();
+        assert_eq!(client.owner, "acme");
         assert_eq!(client.repo, "og-cli");
     }
 
     #[test]
     fn test_aivcs_client_api_endpoint() {
-        let client = AivcsClient::new("lornu-ai".to_string(), "og-cli".to_string());
-        assert!(client.api_endpoint().contains("aivcsd.aivcs.io"));
+        let client = AivcsClient::new("acme".to_string(), "og-cli".to_string());
+        assert!(client.api_endpoint().contains("aivcs.io/api/v1"));
     }
 
     #[test]
     fn test_git_auth_header() {
-        let mut client = GitClient::new("lornu-ai".to_string(), "og-cli".to_string());
+        let mut client = GitClient::new("acme".to_string(), "og-cli".to_string());
         client.token = Some("test-token".to_string());
         assert!(client.auth_header().unwrap().contains("token"));
     }
 
     #[test]
     fn test_aivcs_auth_header() {
-        let mut client = AivcsClient::new("lornu-ai".to_string(), "og-cli".to_string());
+        let mut client = AivcsClient::new("acme".to_string(), "og-cli".to_string());
         client.token = Some("test-token".to_string());
         assert!(client.auth_header().unwrap().contains("Bearer"));
     }
@@ -414,21 +414,21 @@ mod tests {
     // URI parsing is pure (no env) — safe to test independently.
     #[test]
     fn test_parse_git_uri() {
-        let (o, r) = SourceResolver::parse_git_uri("git://github.com/lornu-ai/og-cli").unwrap();
-        assert_eq!((o.as_str(), r.as_str()), ("lornu-ai", "og-cli"));
+        let (o, r) = SourceResolver::parse_git_uri("git://github.com/acme/og-cli").unwrap();
+        assert_eq!((o.as_str(), r.as_str()), ("acme", "og-cli"));
         assert!(SourceResolver::parse_git_uri("git://github.com/only-one").is_err());
     }
 
     #[test]
     fn test_parse_aivcs_uri() {
         let (o, r) =
-            SourceResolver::parse_aivcs_uri("aivcs://lornu-ai/og-cli@aivcs.io", "fallback")
+            SourceResolver::parse_aivcs_uri("aivcs://acme/og-cli@aivcs.io", "fallback")
                 .unwrap();
-        assert_eq!((o.as_str(), r.as_str()), ("lornu-ai", "og-cli"));
+        assert_eq!((o.as_str(), r.as_str()), ("acme", "og-cli"));
         // Bare repo-id falls back to the default owner (tenant).
         let (o, r) =
-            SourceResolver::parse_aivcs_uri("aivcs://og-cli@aivcs.io", "lornu-ai").unwrap();
-        assert_eq!((o.as_str(), r.as_str()), ("lornu-ai", "og-cli"));
+            SourceResolver::parse_aivcs_uri("aivcs://og-cli@aivcs.io", "acme").unwrap();
+        assert_eq!((o.as_str(), r.as_str()), ("acme", "og-cli"));
     }
 
     // `SOURCE_URI` / `ENABLE_AIVCS_NATIVE` are process-global; drive the whole
@@ -441,15 +441,15 @@ mod tests {
 
         // No env → Git (safe, offline-testable default).
         assert_eq!(SourceResolver::route().unwrap(), Transport::Git);
-        let c = SourceResolver::resolve("lornu-ai", "og-cli").unwrap();
+        let c = SourceResolver::resolve("acme", "og-cli").unwrap();
         assert_eq!(c.transport(), Transport::Git);
-        assert_eq!((c.owner(), c.repo()), ("lornu-ai", "og-cli"));
+        assert_eq!((c.owner(), c.repo()), ("acme", "og-cli"));
 
         // ENABLE_AIVCS_NATIVE=true (no SOURCE_URI) → AIVCS.
         std::env::set_var("ENABLE_AIVCS_NATIVE", "true");
         assert_eq!(SourceResolver::route().unwrap(), Transport::Aivcs);
         assert_eq!(
-            SourceResolver::resolve("lornu-ai", "og-cli")
+            SourceResolver::resolve("acme", "og-cli")
                 .unwrap()
                 .transport(),
             Transport::Aivcs
@@ -457,22 +457,22 @@ mod tests {
         std::env::remove_var("ENABLE_AIVCS_NATIVE");
 
         // SOURCE_URI scheme is authoritative and overrides the flag.
-        std::env::set_var("SOURCE_URI", "git://github.com/lornu-ai/og-cli");
+        std::env::set_var("SOURCE_URI", "git://github.com/acme/og-cli");
         std::env::set_var("ENABLE_AIVCS_NATIVE", "true"); // must NOT win over an explicit git:// URI
         let c = SourceResolver::resolve("x", "y").unwrap();
         assert_eq!(c.transport(), Transport::Git);
-        assert_eq!((c.owner(), c.repo()), ("lornu-ai", "og-cli"));
+        assert_eq!((c.owner(), c.repo()), ("acme", "og-cli"));
         std::env::remove_var("ENABLE_AIVCS_NATIVE");
 
-        std::env::set_var("SOURCE_URI", "aivcs://lornu-ai/og-cli@aivcs.io");
+        std::env::set_var("SOURCE_URI", "aivcs://acme/og-cli@aivcs.io");
         let c = SourceResolver::resolve("x", "y").unwrap();
         assert_eq!(c.transport(), Transport::Aivcs);
-        assert_eq!((c.owner(), c.repo()), ("lornu-ai", "og-cli"));
+        assert_eq!((c.owner(), c.repo()), ("acme", "og-cli"));
 
         // Unknown scheme → fail-closed (NOT a silent Git fallback).
         std::env::set_var("SOURCE_URI", "ftp://example.com/x/y");
         assert!(SourceResolver::route().is_err());
-        assert!(SourceResolver::resolve("lornu-ai", "og-cli").is_err());
+        assert!(SourceResolver::resolve("acme", "og-cli").is_err());
 
         std::env::remove_var("SOURCE_URI");
     }

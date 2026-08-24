@@ -68,7 +68,7 @@ mod tests {
 
     #[tokio::test]
     async fn start_returns_printable_handle() {
-        let h = WorkflowClient::start("build", "AivcsOps build: main", "lornu-ai")
+        let h = WorkflowClient::start("build", "AivcsOps build: main", "acme")
             .await
             .unwrap();
         assert!(!h.id.is_empty());

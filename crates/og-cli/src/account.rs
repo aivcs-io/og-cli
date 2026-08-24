@@ -25,7 +25,7 @@ impl Default for AccountState {
         Self {
             accounts: Vec::new(),
             active_account: None,
-            active_org: "lornu-ai".to_string(),
+            active_org: "acme".to_string(),
         }
     }
 }
@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn test_account_state_default() {
         let state = AccountState::default();
-        assert_eq!(state.active_org, "lornu-ai");
+        assert_eq!(state.active_org, "acme");
         assert!(state.active_account.is_none());
     }
 

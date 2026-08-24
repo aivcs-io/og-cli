@@ -28,7 +28,7 @@ async fn mount_broker(server: &MockServer) {
         .await;
 
     let payload = serde_json::json!({
-        "sub": "dev@lornu.ai",
+        "sub": "user@example.com",
         "aud": ["aivcs", "github"],
         "exp": 9999999999_u64
     });
@@ -78,7 +78,7 @@ async fn device_login_stores_broker_jwt() {
     let stored_path = dirs::home_dir().unwrap().join(".og/auth/token");
     let raw = std::fs::read_to_string(&stored_path).expect("token file written");
     let parsed: serde_json::Value = serde_json::from_str(&raw).unwrap();
-    assert_eq!(parsed["email"], "dev@lornu.ai");
+    assert_eq!(parsed["email"], "user@example.com");
     assert!(parsed["audiences"]
         .as_array()
         .unwrap()

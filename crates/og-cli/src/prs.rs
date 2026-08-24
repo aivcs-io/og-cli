@@ -390,7 +390,7 @@ mod tests {
     fn gate_record_serializes() {
         let record = PrGateRecord {
             pr_number: 99,
-            pr_url: "https://github.com/lornu-ai/og-cli/pull/99".to_string(),
+            pr_url: "https://github.com/acme/og-cli/pull/99".to_string(),
             test_status: "passed".to_string(),
             review_status: "approved".to_string(),
             review_score: 92,

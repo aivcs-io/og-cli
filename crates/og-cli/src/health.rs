@@ -25,8 +25,13 @@ impl HealthCheck {
 
     /// Check if AOA endpoint is reachable
     async fn check_aoa() -> bool {
-        let aoa_url = std::env::var("AOA_URL")
-            .unwrap_or_else(|_| "http://aoa-mcp.agent-orchestrate-ai:8090".to_string());
+        let Ok(aoa_url) = std::env::var("AOA_URL") else {
+            info!("AOA_URL not set — skipping AOA health check");
+            return false;
+        };
+        if aoa_url.trim().is_empty() {
+            return false;
+        }
 
         info!("Checking AOA reachability at: {}", aoa_url);
 

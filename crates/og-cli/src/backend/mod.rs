@@ -247,22 +247,26 @@ async fn off_cluster_requested() -> bool {
         return BackendFactory::env_flag("OG_OFF_CLUSTER");
     }
 
-    // Skip auto-detection in unit and integration tests to prevent mock-free network calls
+    // Off-cluster when OG_OFF_CLUSTER is set, or when no in-cluster DATA_MESH_URL
+    // host is configured. Never probe private cluster DNS from the public build.
     if cfg!(test) || std::env::var("CARGO_MANIFEST_DIR").is_ok() {
         return false;
     }
 
-    let mut test_host = "data-fabric.data-fabric.svc.cluster.local:80".to_string();
-    if let Ok(url_str) = std::env::var("DATA_MESH_URL") {
-        if let Ok(url) = reqwest::Url::parse(&url_str) {
-            if let Some(host) = url.host_str() {
-                let port = url.port().unwrap_or(80);
-                test_host = format!("{}:{}", host, port);
-            }
-        }
-    }
+    let Some(url_str) = std::env::var("DATA_MESH_URL").ok().filter(|s| !s.trim().is_empty())
+    else {
+        return true;
+    };
 
-    // Use tokio's non-blocking async lookup_host
+    let Ok(url) = reqwest::Url::parse(&url_str) else {
+        return true;
+    };
+    let Some(host) = url.host_str() else {
+        return true;
+    };
+    let port = url.port().unwrap_or(80);
+    let test_host = format!("{host}:{port}");
+
     let in_cluster = tokio::net::lookup_host(&test_host).await.is_ok();
     !in_cluster
 }

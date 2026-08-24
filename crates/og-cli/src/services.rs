@@ -1,7 +1,9 @@
 /// og-* fleet services management (build & deploy via A2A orchestration)
 use crate::a2a::{A2AClient, BuildRequest, DeployRequest};
-use anyhow::{anyhow, Result};
+use crate::org::OrgManager;
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,81 +24,22 @@ pub struct ServiceCatalog {
 }
 
 impl ServiceCatalog {
+    /// Load the fleet catalog from `OG_SERVICES_CATALOG` (JSON file path).
+    /// Public builds ship with an empty catalog — fleet operators provide their own.
     pub fn load() -> Result<Self> {
-        Ok(ServiceCatalog {
-            services: vec![
-                OgService {
-                    name: "og-leader".to_string(),
-                    description: "Primary orchestrator for og-* agents".to_string(),
-                    repo: "aivcs://lornu-ai/og-leader".to_string(),
-                    image_name: "og-leader".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-leader".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-                OgService {
-                    name: "og-propel".to_string(),
-                    description: "Propel-based build orchestrator".to_string(),
-                    repo: "aivcs://lornu-ai/og-propel".to_string(),
-                    image_name: "og-propel".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-propel".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-                OgService {
-                    name: "og-builds".to_string(),
-                    description: "OCI image builder (multi-arch)".to_string(),
-                    repo: "aivcs://lornu-ai/og-builds".to_string(),
-                    image_name: "og-builds".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-builds".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-                OgService {
-                    name: "og-crab".to_string(),
-                    description: "Test execution engine".to_string(),
-                    repo: "aivcs://lornu-ai/og-crab".to_string(),
-                    image_name: "og-crab".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-crab".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-                OgService {
-                    name: "og-code-review-agent".to_string(),
-                    description: "Code review agent".to_string(),
-                    repo: "aivcs://lornu-ai/og-code-review-agent".to_string(),
-                    image_name: "og-code-review-agent".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-code-review-agent".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-                OgService {
-                    name: "ogre".to_string(),
-                    description: "Agent integration wiring (ogre-svc)".to_string(),
-                    repo: "aivcs://lornu-ai/ogre".to_string(),
-                    image_name: "ogre-svc".to_string(),
-                    docker_image: "us-central1-docker.pkg.dev/gcp-lornu-ai/lornu/ogre-svc"
-                        .to_string(),
-                    k8s_namespace: "ogre".to_string(),
-                    flake_ref: ".#ogre-svc-image".to_string(),
-                    cluster: "lornu-gke-prod".to_string(),
-                },
-                OgService {
-                    name: "og-pr-merge-agent".to_string(),
-                    description: "PR merge agent".to_string(),
-                    repo: "aivcs://lornu-ai/og-pr-merge-agent".to_string(),
-                    image_name: "og-pr-merge-agent".to_string(),
-                    docker_image: "gcr.io/lornu-ai/og-pr-merge-agent".to_string(),
-                    k8s_namespace: "og-agents".to_string(),
-                    flake_ref: ".#image".to_string(),
-                    cluster: "aivcs-builds".to_string(),
-                },
-            ],
+        let path = std::env::var("OG_SERVICES_CATALOG").ok();
+        let Some(path) = path.filter(|p| !p.trim().is_empty()) else {
+            return Ok(ServiceCatalog {
+                services: vec![],
+            });
+        };
+        let content = std::fs::read_to_string(&path)
+            .with_context(|| format!("read OG_SERVICES_CATALOG at {path}"))?;
+        serde_json::from_str(&content).with_context(|| {
+            format!(
+                "parse OG_SERVICES_CATALOG JSON at {}",
+                Path::new(&path).display()
+            )
         })
     }
 
@@ -110,7 +53,11 @@ pub fn get(name: &str) -> Result<OgService> {
     catalog
         .find(name)
         .cloned()
-        .ok_or_else(|| anyhow!("Service not found: {}", name))
+        .ok_or_else(|| {
+            anyhow!(
+                "Service not found: {name}. Set OG_SERVICES_CATALOG to a JSON catalog file."
+            )
+        })
 }
 
 pub struct ServiceManager;
@@ -118,6 +65,11 @@ pub struct ServiceManager;
 impl ServiceManager {
     pub fn list() -> Result<()> {
         let catalog = ServiceCatalog::load()?;
+        if catalog.services.is_empty() {
+            println!("No fleet services configured.");
+            println!("Set OG_SERVICES_CATALOG to a JSON catalog file to list build/deploy targets.");
+            return Ok(());
+        }
         println!("og-* Fleet Services:");
         println!();
         for service in &catalog.services {
@@ -142,9 +94,9 @@ impl ServiceManager {
         Ok(())
     }
 
-    /// Build a service via og-leader A2A orchestration
     pub async fn build(service_name: &str) -> Result<()> {
         let service = get(service_name)?;
+        let org = OrgManager::resolve_org(None);
         info!("Building service: {} (via A2A → og-leader)", service.name);
 
         println!("🏗️  Building: {}", service.name);
@@ -152,15 +104,16 @@ impl ServiceManager {
         println!("   Image: {}", service.docker_image);
         println!("   Flake: {}", service.flake_ref);
 
+        let registry = std::env::var("OG_OCI_REGISTRY").unwrap_or_else(|_| "registry.example".to_string());
         let req = BuildRequest {
             service: service.name.clone(),
             repo: service.repo.clone(),
             flake_ref: service.flake_ref.clone(),
-            registry: "gcr.io".to_string(),
+            registry,
             push: true,
         };
 
-        let resp = A2AClient::build_service(&req, "lornu-ai").await?;
+        let resp = A2AClient::build_service(&req, &org).await?;
 
         println!("   Status: {}", resp.status);
         if let Some(err) = resp.error {
@@ -174,9 +127,9 @@ impl ServiceManager {
         Ok(())
     }
 
-    /// Deploy a service via og-leader A2A orchestration
     pub async fn deploy(service_name: &str, cluster: &str) -> Result<()> {
         let service = get(service_name)?;
+        let org = OrgManager::resolve_org(None);
         info!(
             "Deploying service: {} to cluster: {} (via A2A)",
             service.name, cluster
@@ -192,7 +145,7 @@ impl ServiceManager {
             namespace: service.k8s_namespace.clone(),
         };
 
-        let resp = A2AClient::deploy_service(&req, "lornu-ai").await?;
+        let resp = A2AClient::deploy_service(&req, &org).await?;
 
         println!("   Status: {}", resp.status);
         if let Some(err) = resp.error {
@@ -224,23 +177,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_catalog_loads() {
+    fn test_catalog_empty_without_env() {
+        std::env::remove_var("OG_SERVICES_CATALOG");
         let catalog = ServiceCatalog::load().unwrap();
-        assert_eq!(catalog.services.len(), 7);
-    }
-
-    #[test]
-    fn test_find_og_leader() {
-        let catalog = ServiceCatalog::load().unwrap();
-        let service = catalog.find("og-leader").unwrap();
-        assert_eq!(service.name, "og-leader");
-        assert!(service.repo.contains("og-leader"));
-    }
-
-    #[test]
-    fn test_get_service() {
-        let service = get("og-leader").unwrap();
-        assert_eq!(service.name, "og-leader");
-        assert_eq!(service.repo, "aivcs://lornu-ai/og-leader");
+        assert!(catalog.services.is_empty());
     }
 }

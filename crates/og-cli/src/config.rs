@@ -103,7 +103,7 @@ impl ConfigManager {
                 name: Some(name.clone()),
                 description: None,
                 language: Some("rust".to_string()),
-                owner: Some("lornu-ai".to_string()),
+                owner: Some("acme".to_string()),
             },
             vcs: VcsConfig {
                 backend: "auto".to_string(),
@@ -123,7 +123,7 @@ impl ConfigManager {
         println!("[repo]");
         println!("name = \"{}\"", name);
         println!("language = \"rust\"");
-        println!("owner = \"lornu-ai\"");
+        println!("owner = \"acme\"");
 
         info!("Config init complete");
         Ok(())

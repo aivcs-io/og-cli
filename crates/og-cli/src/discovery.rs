@@ -273,7 +273,7 @@ mod tests {
     #[test]
     fn is_public_route_rejects_internal_route_ids() {
         assert!(!is_public_route(
-            "gateway-routes/lornu-gke-prod-identity-broker-identity-broker-identity-broker"
+            "gateway-routes/internal-cluster-identity-broker-identity-broker-identity-broker"
         ));
         assert!(!is_public_route("gateway-routes"));
         assert!(!is_public_route("identity-broker"));
@@ -290,7 +290,7 @@ mod tests {
             brand: None,
             port: None,
             routes: vec![
-                "gateway-routes/lornu-gke-prod-identity-broker-identity-broker-identity-broker"
+                "gateway-routes/internal-cluster-identity-broker-identity-broker-identity-broker"
                     .to_string(),
             ],
             exposure_class: Some("Public".to_string()),

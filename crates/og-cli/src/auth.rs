@@ -632,7 +632,7 @@ mod tests {
     #[test]
     fn decode_jwt_claims_parses_sub_and_aud() {
         let payload = serde_json::json!({
-            "sub": "dev@lornu.ai",
+            "sub": "user@example.com",
             "aud": ["aivcs", "github"],
             "exp": 9999999999_u64
         });
@@ -640,7 +640,7 @@ mod tests {
             .encode(serde_json::to_string(&payload).unwrap());
         let token = format!("header.{encoded}.sig");
         let claims = decode_jwt_claims(&token).unwrap();
-        assert_eq!(claims.sub, "dev@lornu.ai");
+        assert_eq!(claims.sub, "user@example.com");
         assert_eq!(claims.audiences(), vec!["aivcs", "github"]);
     }
 }
