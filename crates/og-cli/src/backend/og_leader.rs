@@ -1,4 +1,4 @@
-//! The **only** sovereign backend: og-cli → og-leader over **A2A on the
+//! The **only** backend: og-cli → og-leader over **A2A on the
 //! data-mesh standard offering** (`og-agent-data-mesh`), per code-governance#641.
 //!
 //! Retires the fabricating AOA/Kubernetes/Harbormaster stub backends

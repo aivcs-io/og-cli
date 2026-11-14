@@ -106,7 +106,7 @@ fn core_agents() -> Vec<AgentInfo> {
         },
         AgentInfo {
             name: "og-pr-merge-agent".to_string(),
-            description: "PR merge gating and sovereign merge".to_string(),
+            description: "PR merge gating".to_string(),
             enabled: true,
             timeout_secs: Some(200),
         },

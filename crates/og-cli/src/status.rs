@@ -62,7 +62,7 @@ impl StatusManager {
         println!();
         println!("Stage 5: Merge (og-pr-merge-agent)");
         println!("  ├─ Status: ✅ ready");
-        println!("  ├─ Gate: sovereign merge validation");
+        println!("  ├─ Gate: merge validation");
         println!("  └─ Latency: <100ms avg");
         println!();
 

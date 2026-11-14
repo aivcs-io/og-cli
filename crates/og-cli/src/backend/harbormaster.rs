@@ -1,4 +1,4 @@
-//! Harbormaster fallback backend: the **local last resort** when the sovereign
+//! Harbormaster fallback backend: the **local last resort** when the
 //! og-leader seam (A2A over the data-mesh offering) is fully unreachable
 //! (code-governance#758, resolves #478).
 //!
@@ -6,7 +6,7 @@
 //! remote backend — it is harbormaster's orchestrator embedded **in-process** as
 //! a library (`harbormaster::run_tool(tool, task)`), running real local tools.
 //! There is no external `hm` binary and no subprocess: og-cli ships as a single
-//! self-contained binary. It is honest and non-sovereign: it never fabricates a
+//! self-contained binary. It is honest and: it never fabricates a
 //! verdict, it reflects the real exit status of the tool it ran. Review scores
 //! default to `0` (not gated) — a real gate verdict only ever comes from
 //! og-leader.
@@ -68,7 +68,7 @@ impl HarbormasterBackend {
 /// devshell (`nix develop -c bash -lc <task>`), so the task MUST be a real,
 /// shell-safe command — never a prose sentence. A description with shell
 /// metacharacters (`(`, `)`, `=`) is a syntax error that failed every local
-/// build/test fallback (og-bug-report#41). `og-crab run` is the sovereign local
+/// build/test fallback (og-bug-report#41). `og-crab run` is the local
 /// check runner: it reads the repo's propel.toml and performs the real build +
 /// tests, og-leader-independent.
 const LOCAL_CHECK_CMD: &str = "og-crab run";
@@ -116,8 +116,8 @@ impl Default for HarbormasterBackend {
 #[async_trait]
 impl Backend for HarbormasterBackend {
     fn mode(&self) -> ExecutionMode {
-        // Harbormaster runs real local tools on this machine — honest and
-        // non-sovereign, which is exactly the `Local` execution semantics.
+        // Harbormaster runs real local tools on this machine — honest,
+        // which is exactly the `Local` execution semantics.
         ExecutionMode::Local
     }
 
@@ -178,25 +178,25 @@ impl Backend for HarbormasterBackend {
     }
 
     async fn review(&self, pr_url: &str) -> Result<ReviewOutput> {
-        // No local fallback. Reviewing a remote PR needs its diff + a sovereign gate
+        // No local fallback. Reviewing a remote PR needs its diff + a gate
         // score from og-code-review-agent via og-leader. A local `claude` on just the PR
         // URL has no diff and produces no gate verdict, so FAIL CLOSED rather than report a
         // hollow "completed". (Building/testing the *local* repo still falls back — those
         // operate on the checkout in hand; a remote PR review does not.)
         bail!(
             "review has no local fallback: reviewing {pr_url} requires og-code-review-agent (and \
-             a sovereign gate score) via og-leader, which is unreachable. Refusing to report a \
+             a gate score) via og-leader, which is unreachable. Refusing to report a \
              hollow review."
         )
     }
 
     async fn merge(&self, pr_url: &str, _if_approved: bool) -> Result<MergeOutput> {
-        // No local fallback. Merging a remote PR (with the sovereign gate) is the job of
+        // No local fallback. Merging a remote PR (with the gate) is the job of
         // og-pr-merge-agent via og-leader; a local tool cannot merge a GitHub/aivcs PR. So
         // FAIL CLOSED — never run a tool and map its exit code to a fabricated "merged".
         bail!(
             "merge has no local fallback: merging {pr_url} requires og-pr-merge-agent (with the \
-             sovereign gate) via og-leader, which is unreachable. Refusing to fabricate a merge."
+             gate) via og-leader, which is unreachable. Refusing to fabricate a merge."
         )
     }
 
@@ -207,7 +207,7 @@ impl Backend for HarbormasterBackend {
         // nothing about the PR's state. FAIL CLOSED rather than fabricate a "resolved" verdict.
         bail!(
             "fix-conflicts has no local fallback: resolving conflicts on {pr_url} requires the \
-             sovereign og-fix-merge-conflicts-agent (clone → resolve → push) via og-leader, which \
+             og-fix-merge-conflicts-agent (clone → resolve → push) via og-leader, which \
              is unreachable. Refusing to fabricate a 'resolved' result."
         )
     }
@@ -229,14 +229,14 @@ impl Backend for HarbormasterBackend {
 
     async fn create_repo(&self, spec: &CreateRepoSpec) -> Result<CreateRepoOutput> {
         // No local fallback — even with OG_FALLBACK enabled. Provisioning a repo
-        // is a sovereign action: og-leader → AOA → og-agent-forge creates it with
+        // is an action: og-leader → AOA → og-agent-forge creates it with
         // the org's policy, identity, and audit trail. A local `gh repo create`
         // side channel would bypass all of that and fabricate provenance, so FAIL
         // CLOSED rather than create a repo out-of-band (code-governance#795),
         // mirroring merge/review/fix_conflicts/forward_to_leader.
         bail!(
             "create-repo has no local fallback: provisioning repository {:?} requires the \
-             sovereign og-agent-forge (with org policy + audit) via og-leader, which is \
+             og-agent-forge (with org policy + audit) via og-leader, which is \
              unreachable. Refusing to create a repo via a local/GitHub side channel.",
             spec.name
         )

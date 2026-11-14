@@ -8,14 +8,14 @@ While the organization enforces a strict "Exit GitHub" and "No Docker Hub" polic
 * **GitHub sync**: `https://github.com/aivcs-io/og-cli` is the public open-source upstream.
 * **Docker Hub publishing**: Version tags trigger release automation → Docker Hub (`hello0aivcs0io/og-cli`) and GHCR (`ghcr.io/aivcs-io/og-cli`). Org: https://hub.docker.com/repositories/hello0aivcs0io
 
-## Public upstream vs sovereign forge
+## Public upstream vs forge
 
 | Surface | Location |
 |---------|----------|
 | **Public GitHub** | `https://github.com/aivcs-io/og-cli` (this repo) |
 | **Public Docker Hub** | `docker.io/hello0aivcs0io/og-cli` |
 | **Public GHCR** | `ghcr.io/aivcs-io/og-cli` |
-| **Sovereign forge (SoT)** | `aivcs://aivcs/og-cli` (internal — not mirrored verbatim) |
+| **Forge (SoT)** | `aivcs://aivcs/og-cli` (internal — not mirrored verbatim) |
 | **Homebrew** | `https://github.com/aivcs-io/homebrew-tap` (release automation) |
 
 ## Release process (scan-first, fail closed)
@@ -30,7 +30,7 @@ Every merge to `main` and every tag release **must pass** the `Release Gate` wor
 
 ### Publishing a version
 
-1. Export from sovereign forge `aivcs://aivcs/og-cli@main` (strip forge-only files: `.aivcsignore`, `propel.toml`, `state.json`, path patches, internal fleet catalogs).
+1. Export from forge `aivcs://aivcs/og-cli@main` (strip forge-only files: `.aivcsignore`, `propel.toml`, `state.json`, path patches, internal fleet catalogs).
 2. Run the gate locally (optional but recommended):
    ```bash
    gitleaks detect --source . --no-git
@@ -66,7 +66,7 @@ Fleet-specific endpoints, execution substrates, and service catalogs are **never
 | **Service discovery** | Publications from `discovery.aivcs.io` per capability |
 | **`OG_SERVICES_CATALOG`** | JSON file mounted or referenced in the cluster overlay |
 
-Internal fleet deploys set these in `infra-code-micro` ConfigMaps / ExternalSecrets. The sovereign forge tree may contain additional wiring manifests; the **GitHub export** stays free of internal service names. Substrate selection (remote CI, runners, etc.) is **og-leader's** job after og-cli forwards the objective.
+Internal fleet deploys set these in `infra-code-micro` ConfigMaps / ExternalSecrets. The forge tree may contain additional wiring manifests; the **GitHub export** stays free of internal service names. Substrate selection (remote CI, runners, etc.) is **og-leader's** job after og-cli forwards the objective.
 
 ## Do not
 

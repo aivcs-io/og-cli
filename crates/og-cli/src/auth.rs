@@ -216,7 +216,7 @@ impl AuthManager {
             }
         }
 
-        // Sync Global OIDC/WIF token to ~/.cargo/credentials.toml for sovereign registry.aivcs.io
+        // Sync Global OIDC/WIF token to ~/.cargo/credentials.toml for registry.aivcs.io
         if let Err(err) = Self::sync_cargo_credentials(&stored.token) {
             info!("could not sync cargo credentials: {err}");
         }
@@ -302,7 +302,7 @@ impl AuthManager {
 
     /// Require a valid authenticated session, returning the stored token.
     ///
-    /// Fail-closed gate for sovereign, mutating actions (e.g. repo creation,
+    /// Fail-closed gate for mutating actions (e.g. repo creation,
     /// code-governance#795): bails if no token is stored **or** the token has
     /// expired. Read-only — never triggers a login. The returned [`AuthToken`]
     /// supplies the actor (email) for an audit record; callers must NEVER proceed

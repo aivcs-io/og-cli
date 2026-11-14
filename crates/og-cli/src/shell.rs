@@ -380,7 +380,7 @@ pub async fn execute_plan(plan: &IntentPlan, config: &ProjectConfig) -> Result<(
                 description,
                 org,
             } => {
-                // Sovereign repo creation (code-governance#795): og-cli → og-leader
+                // Repo creation (code-governance#795): og-cli → og-leader
                 // → AOA → og-agent-forge. Routed through the same orchestrator as
                 // `og repo create`, which enforces the fail-closed auth check,
                 // resolves org/account, dispatches over A2A, and prints the audit

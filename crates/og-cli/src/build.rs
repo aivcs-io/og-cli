@@ -54,7 +54,7 @@ pub struct PropelBuildRequest {
     /// Fleet service id (og-leader, og-crab, …) when building from catalog.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_id: Option<String>,
-    /// Nix flake attribute (og-propel sovereign rail).
+    /// Nix flake attribute (og-propel rail).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flake_ref: Option<String>,
 }

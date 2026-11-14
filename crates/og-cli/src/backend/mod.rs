@@ -22,8 +22,8 @@ pub use types::{
 
 /// Execution mode determines which backend to use for workflow commands.
 ///
-/// og-cli connects to exactly one sovereign seam — **og-leader** (over A2A);
-/// `Local` is the honest, non-sovereign dev mode that runs real local tools
+/// og-cli connects to exactly one seam — **og-leader** (over A2A);
+/// `Local` is the honest dev mode that runs real local tools
 /// (git/cargo/docker) on this machine. The former AOA/Kubernetes/Harbormaster
 /// modes were removed: they dialed the wrong seams and returned fabricated
 /// results (og-bug-report#31, code-governance#630).
@@ -31,11 +31,11 @@ pub use types::{
 pub enum ExecutionMode {
     /// Local execution: real git + cargo + docker on this machine (dev only).
     Local,
-    /// og-leader over A2A: the sole sovereign backend. og-leader owns all
+    /// og-leader over A2A: the sole backend. og-leader owns all
     /// downstream execution (AOA → og-* agents) and durable state.
     OgLeader,
     /// og-leader **edge gateway** over HTTPS — the off-cluster transport
-    /// (og-cli#65). Same sovereign semantics as `OgLeader`; the gateway enqueues
+    /// (og-cli#65). Same semantics as `OgLeader`; the gateway enqueues
     /// into the data-mesh in-cluster on the caller's behalf.
     EdgeGateway,
 }
@@ -98,12 +98,12 @@ pub trait Backend: Send + Sync {
     /// this holds even when the harbormaster fallback is enabled (og-cli#48).
     async fn forward_to_leader(&self, objective: &str) -> Result<ForwardOutput>;
 
-    /// CreateRepo: provision a repository through the sovereign path — og-cli →
+    /// CreateRepo: provision a repository through the path — og-cli →
     /// og-leader → AOA → **og-agent-forge**. og-cli only *dispatches* (a queued
     /// ack, not a synchronous "created" verdict); it surfaces og-leader's status
     /// verbatim and never fabricates a repo URL from a bare ack.
     ///
-    /// Repo creation is remote/sovereign — there is NO local/GitHub side channel
+    /// Repo creation is remote/— there is NO local/GitHub side channel
     /// (`gh repo create` would bypass org policy, identity, and the audit trail
     /// og-agent-forge enforces). So every **non-og-leader** backend
     /// (harbormaster/local) MUST **fail closed** here, exactly like
@@ -118,9 +118,9 @@ pub struct BackendFactory;
 impl BackendFactory {
     /// Select the backend.
     ///
-    /// og-cli routes only through **og-leader** (over A2A) — the single sovereign
+    /// og-cli routes only through **og-leader** (over A2A) — the single
     /// *network* seam. `OG_BACKEND=local` opts into honest local-tool execution
-    /// for dev; it is non-sovereign and labeled as such.
+    /// for dev; it is and labeled as such.
     ///
     /// When the **harbormaster fallback** is enabled (via `/config`, persisted in
     /// `~/.og/config.toml`, or `OG_FALLBACK=1`) the og-leader primary is wrapped
@@ -140,7 +140,7 @@ impl BackendFactory {
         org: Option<String>,
     ) -> Result<Box<dyn Backend>> {
         if std::env::var("OG_BACKEND").unwrap_or_default() == "local" {
-            info!("Backend selected: Local (real local tools; non-sovereign, dev only)");
+            info!("Backend selected: Local (real local tools;, dev only)");
             return Ok(Box::new(local::LocalBackend::new()));
         }
 
@@ -193,7 +193,7 @@ impl BackendFactory {
             }
         }
 
-        info!("Backend selected: og-leader (A2A) — the sole sovereign seam");
+        info!("Backend selected: og-leader (A2A) — the sole seam");
         Ok(Box::new(primary))
     }
 
@@ -281,7 +281,7 @@ mod tests {
     async fn test_backend_selection_modes() {
         let config = crate::config::ProjectConfig::default();
 
-        // Default is the sovereign og-leader backend — never a fabricating one.
+        // Default is the og-leader backend — never a fabricating one.
         // Selection stays infallible; the fail-closed happens at dispatch time
         // (see og_leader::dispatch, and og-bug-report#50 for the laptop hint added
         // to that dispatch error).

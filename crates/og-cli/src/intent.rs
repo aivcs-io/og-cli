@@ -48,7 +48,7 @@ pub enum PlanStep {
     FixConflicts {
         pr: Option<String>,
     },
-    /// Create a repository via the sovereign flow — og-leader → AOA →
+    /// Create a repository via the flow — og-leader → AOA →
     /// og-agent-forge (code-governance#795). Mutating: provisions a new repo, so
     /// it is confirmation-gated. `name` empty ⇒ the parser asks which name to use.
     CreateRepo {
@@ -303,7 +303,7 @@ pub fn parse_intent(text: &str) -> IntentPlan {
         };
     }
 
-    // Repo creation → sovereign og-agent-forge via og-leader (code-governance#795).
+    // Repo creation → og-agent-forge via og-leader (code-governance#795).
     // A dedicated branch (not additive): "create a private repo named X with a
     // README and MIT license" is one whole objective, so we emit a single
     // CreateRepo step and nothing else. Requires a create/new/make verb AND a
@@ -940,7 +940,7 @@ mod tests {
     #[test]
     fn create_private_repo_with_readme_and_license_maps_to_create_repo() {
         // The FR example (code-governance#795): the whole objective becomes ONE
-        // sovereign CreateRepo step — never additive noise from "review"/"build".
+        // CreateRepo step — never additive noise from "review"/"build".
         let p = parse_intent("create a private repo named acme-web with a README and MIT license");
         assert_eq!(
             p.steps,

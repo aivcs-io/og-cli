@@ -51,7 +51,7 @@ og> /exit
 
 ## Architecture
 
-The CLI is deliberately a single AivcsOps front door. Slash commands control the local session; natural language is forwarded to the sovereign orchestrator:
+The CLI is deliberately a single AivcsOps front door. Slash commands control the local session; natural language is forwarded to the orchestrator:
 
 ```
 og-cli ↔ og-cli-service ↔ og-leader-gw ↔ og-leader ↔ graph
@@ -64,7 +64,7 @@ og-cli ↔ og-cli-service ↔ og-leader-gw ↔ og-leader ↔ graph
 | This repo | `https://github.com/aivcs-io/og-cli` |
 | Docker Hub | `docker.io/hello0aivcs0io/og-cli` |
 | GHCR | `ghcr.io/aivcs-io/og-cli` |
-| Sovereign forge (SoT) | `aivcs://aivcs/og-cli` |
+| Forge (SoT) | `aivcs://aivcs/og-cli` |
 | Homebrew | `brew install aivcs-io/tap/og` (after first release) |
 
 See [GEMINI.md](./GEMINI.md) for release/sync policy, deployment wiring, and the scan-first release gate.
