@@ -32,7 +32,7 @@ async fn test_backend_selection_contract() {
         std::env::remove_var(k);
     }
 
-    // Default is the sole sovereign seam — never a fabricating backend.
+    // Default is the sole seam — never a fabricating backend.
     let backend = BackendFactory::select(&config).await.expect("infallible");
     assert_eq!(backend.mode(), og_cli::ExecutionMode::OgLeader);
 

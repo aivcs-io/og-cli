@@ -187,7 +187,7 @@ impl AivcsClient {
 pub enum Transport {
     /// GitHub clone — the always-present, offline-testable bootstrap default.
     Git,
-    /// AIVCS native — sovereign, opt-in for production.
+    /// AIVCS native —, opt-in for production.
     Aivcs,
 }
 

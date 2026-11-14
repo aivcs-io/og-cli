@@ -36,7 +36,7 @@ impl FallbackBackend {
         Self { primary, fallback }
     }
 
-    /// Decide whether `err` represents the sovereign work-plane being
+    /// Decide whether `err` represents the work-plane being
     /// **unreachable** (⇒ fall back to harbormaster) versus any other failure
     /// (⇒ fail closed).
     ///
@@ -114,7 +114,7 @@ macro_rules! with_fallback {
 #[async_trait]
 impl Backend for FallbackBackend {
     fn mode(&self) -> ExecutionMode {
-        // The fallback is transparent: present the primary (sovereign) mode.
+        // The fallback is transparent: present the primary mode.
         self.primary.mode()
     }
 
@@ -360,7 +360,7 @@ mod tests {
         assert_eq!(fc.load(Ordering::SeqCst), 0, "fallback must NOT be invoked");
     }
 
-    // (5) mode() reports the primary (sovereign) mode.
+    // (5) mode() reports the primary mode.
     #[tokio::test]
     async fn test_fallback_mode_reports_primary() {
         let (backend, _pc, _fc) = fb(Behavior::Ok, Behavior::Ok);

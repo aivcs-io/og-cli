@@ -118,7 +118,7 @@ impl OrgManager {
 
     /// Detect the org (tenant) from a repository/PR URL (code-governance#785).
     ///
-    /// Recognises GitHub and the sovereign aivcs.io forge:
+    /// Recognises GitHub and the aivcs.io forge:
     /// - `https://github.com/<org>/<repo>/...`
     /// - `https://aivcs.io/<org>/<repo>/...` (and `www.aivcs.io`)
     /// - `aivcs://<org>/<repo>`

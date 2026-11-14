@@ -221,7 +221,7 @@ impl WorkflowOrchestrator {
         Ok(())
     }
 
-    /// Create a repository through the sovereign flow (code-governance#795):
+    /// Create a repository through the flow (code-governance#795):
     /// og-cli → og-leader → orchestrator → og-agent-forge. Shared by
     /// `og repo create` and the NL shell / `og do` path so both behave
     /// identically.
@@ -240,7 +240,7 @@ impl WorkflowOrchestrator {
     ) -> Result<()> {
         info!("Orchestrating repo-creation workflow...");
 
-        // Fail-closed auth: a sovereign repo-creation dispatch requires a valid
+        // Fail-closed auth: a repo-creation dispatch requires a valid
         // session. The actor (email) is recorded in the audit line — never
         // fabricated, never proceed without it.
         let session = crate::auth::AuthManager::require_session()?;

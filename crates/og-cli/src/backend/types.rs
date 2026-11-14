@@ -202,9 +202,9 @@ impl Default for ForwardOutput {
     }
 }
 
-/// Inputs for a **sovereign** repository-creation dispatch (code-governance#795).
+/// Inputs for a repository-creation dispatch (code-governance#795).
 ///
-/// Repo creation is a remote/sovereign action: og-cli → og-leader → AOA →
+/// Repo creation is a remote/action: og-cli → og-leader → AOA →
 /// og-agent-forge. This struct carries the request to the backend seam; the
 /// og-leader backend serializes it into the `create-repo` A2A payload. og-cli
 /// NEVER creates a repo via a local/GitHub side channel — any non-og-leader

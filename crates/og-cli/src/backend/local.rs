@@ -319,7 +319,7 @@ impl Backend for LocalBackend {
     async fn fix_conflicts(&self, pr_url: &str) -> Result<FixConflictsOutput> {
         info!("Local backend: fix-conflicts for {}", pr_url);
         // Conflict resolution is og-fix-merge-conflicts-agent's job, routed via
-        // og-leader. The local dev backend has no sovereign agent to run it, so it
+        // og-leader. The local dev backend has no agent to run it, so it
         // reports honestly rather than fabricating a resolution (no fake success).
         Ok(FixConflictsOutput {
             status: "unsupported_local".to_string(),
@@ -332,7 +332,7 @@ impl Backend for LocalBackend {
 
     async fn forward_to_leader(&self, objective: &str) -> Result<ForwardOutput> {
         // A fleet/free-form objective is decomposed by og-leader + AOA into
-        // per-target og-* runs; the local dev backend has no sovereign planner and
+        // per-target og-* runs; the local dev backend has no planner and
         // no local "test every PR in the org". FAIL CLOSED rather than fabricate a
         // fleet verdict from a single local tool run (og-cli#48).
         bail!(
@@ -343,8 +343,8 @@ impl Backend for LocalBackend {
     }
 
     async fn create_repo(&self, spec: &CreateRepoSpec) -> Result<CreateRepoOutput> {
-        // Repo creation is sovereign — og-leader → AOA → og-agent-forge. The
-        // local dev backend has no sovereign provisioner, and creating a repo via
+        // Repo creation goes through og-leader → AOA → og-agent-forge. The
+        // local dev backend has no provisioner, and creating a repo via
         // a local `gh` side channel would bypass org policy + identity + audit.
         // FAIL CLOSED rather than create a repo out-of-band (code-governance#795).
         bail!(
@@ -374,7 +374,7 @@ mod tests {
         assert!(output.design.contains("Test design"));
     }
 
-    /// Repo creation is sovereign (og-agent-forge via og-leader) — the local dev
+    /// Repo creation is (og-agent-forge via og-leader) — the local dev
     /// backend has no provisioner and must fail closed, never create a repo via a
     /// local `gh` side channel (code-governance#795).
     #[tokio::test]
